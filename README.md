@@ -1,69 +1,57 @@
 # RAG Vector Assistant
 
-A portfolio-ready **Retrieval-Augmented Generation (RAG)** project built with an **LLM + vector database**.
+I built this project to practice how a complete RAG pipeline works with an LLM and a vector database.
 
-The API lets you upload PDF/TXT/Markdown documents, converts them into embeddings, stores them in **PostgreSQL + pgvector**, retrieves the most relevant chunks for a question, and sends only that retrieved context to an LLM to produce a grounded answer with citations.
+The idea is simple: upload a document, split it into chunks, create embeddings, store them in PostgreSQL with pgvector, retrieve the most relevant chunks for a question, and then send that context to the LLM so the answer stays grounded in the uploaded data.
 
-## Tech stack
+## Tech I used
 
 - Python
 - FastAPI
 - PostgreSQL
 - pgvector
 - Sentence Transformers
-- Groq LLM API
+- Groq API
 - Docker
 - Pytest
 
-## Architecture
+## How it works
 
 ```text
-PDF / TXT / MD
-      |
-      v
- Text Extraction
-      |
-      v
-   Chunking
-      |
-      v
-Sentence-Transformer Embeddings
-      |
-      v
+Document
+   ↓
+Text extraction
+   ↓
+Chunking
+   ↓
+Embeddings
+   ↓
 PostgreSQL + pgvector
-      |
-User Question
-      |
-      v
- Query Embedding
-      |
-      v
-Cosine Similarity Search
-      |
-      v
-Top-k Relevant Chunks
-      |
-      v
-      LLM
-      |
-      v
-Grounded Answer + Citations
+   ↓
+User question
+   ↓
+Query embedding
+   ↓
+Vector similarity search
+   ↓
+Top relevant chunks
+   ↓
+LLM
+   ↓
+Answer with sources
 ```
 
-## Why this project is useful
+## Main features
 
-This is more than a basic chatbot. It demonstrates the core engineering behind modern AI knowledge assistants:
-
-- document ingestion
-- text chunking
-- embeddings
-- vector similarity search
-- HNSW vector indexing
-- context construction
-- LLM grounding
-- source citations
-- API design
-- environment-based secret management
+- Upload PDF, TXT, and Markdown files
+- Split document text into smaller chunks
+- Create embeddings using Sentence Transformers
+- Store embeddings in PostgreSQL using pgvector
+- Search relevant chunks with cosine similarity
+- Use an HNSW index for vector search
+- Send retrieved context to the LLM
+- Return the answer with source references
+- FastAPI endpoints for document upload and question answering
 
 ## Project structure
 
@@ -89,131 +77,81 @@ rag-vector-assistant/
 └── README.md
 ```
 
-## Run locally
+## Run the project
 
-### 1. Start PostgreSQL + pgvector
+Start PostgreSQL with pgvector:
 
 ```bash
 docker compose up -d
 ```
 
-### 2. Create a virtual environment
+Create a virtual environment:
 
 ```bash
 python -m venv .venv
 ```
 
-Windows:
+Activate it on Windows:
 
 ```bash
 .venv\Scripts\activate
 ```
 
-macOS/Linux:
-
-```bash
-source .venv/bin/activate
-```
-
-### 3. Install packages
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
+Create a `.env` file from `.env.example` and add your Groq API key and model name.
 
-Copy `.env.example` to `.env`.
-
-```bash
-cp .env.example .env
-```
-
-On Windows you can simply duplicate the file and rename the copy to `.env`.
-
-Add your Groq API key and set `GROQ_MODEL` to a chat model currently available in your Groq account.
-
-### 5. Run the API
+Then run the API:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Open the interactive API docs at:
+Open:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-## API usage
+## Example flow
 
-### Health check
+First upload a document using the `/documents` endpoint.
 
-```bash
-curl http://127.0.0.1:8000/health
-```
-
-### Upload a document
-
-```bash
-curl -X POST "http://127.0.0.1:8000/documents" \
-  -F "file=@data/sample.txt"
-```
-
-Example response:
+Then ask a question using `/ask`:
 
 ```json
 {
-  "source": "sample.txt",
-  "chunks_inserted": 1
+  "question": "What is RAG?",
+  "top_k": 5
 }
 ```
 
-### Ask a question
+The system retrieves the closest matching chunks from pgvector and uses them as context for the LLM.
 
-```bash
-curl -X POST "http://127.0.0.1:8000/ask" \
-  -H "Content-Type: application/json" \
-  -d "{\"question\":\"What is RAG?\",\"top_k\":5}"
-```
-
-Example response shape:
-
-```json
-{
-  "answer": "RAG retrieves relevant information before asking the LLM to answer [1].",
-  "sources": [
-    {
-      "citation": "[1]",
-      "source": "sample.txt",
-      "chunk_index": 0,
-      "score": 0.8123
-    }
-  ]
-}
-```
-
-## Run tests
+## Testing
 
 ```bash
 pytest
 ```
 
-## Resume / portfolio description
+## What I learned from this project
 
-**RAG Vector Assistant** — Built a document question-answering API using FastAPI, sentence-transformer embeddings, PostgreSQL/pgvector semantic retrieval, and an LLM. Implemented document ingestion, chunking, HNSW vector search, grounded generation, and source citations.
+This project helped me understand the full RAG flow instead of only calling an LLM API. I worked with document ingestion, chunking, embeddings, vector similarity search, retrieval, context building, API design, and grounded generation.
 
-## Good next upgrades
+## Next improvements
 
-- hybrid BM25 + vector retrieval
-- reranking
-- conversation history
-- metadata filters
-- authentication
-- streaming responses
-- evaluation with Recall@K / MRR / NDCG
-- simple React or Next.js frontend
+- Hybrid search using BM25 + vectors
+- Reranking
+- Conversation memory
+- Metadata filtering
+- Streaming responses
+- RAG evaluation using Recall@K, MRR, and NDCG
+- Simple frontend with React or Next.js
 
-## Security
+## Note
 
-Never commit `.env` or API keys to GitHub. The included `.gitignore` already excludes `.env`.
+Do not commit your `.env` file or API keys to GitHub.
