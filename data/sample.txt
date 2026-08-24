@@ -1,0 +1,7 @@
+Vector databases store numerical embeddings that represent semantic meaning.
+A Retrieval-Augmented Generation (RAG) system first retrieves relevant chunks
+from a knowledge base and then gives those chunks to a large language model.
+This helps the model answer with information grounded in the indexed documents.
+
+PostgreSQL can be extended with pgvector to store vectors and perform similarity
+search. Cosine distance is commonly used when embeddings are normalized.
